@@ -19,7 +19,7 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          if [ -z "$DOCKER_USERNAME" ]; then
+          if [ -z "$naresh2546" ]; then
             echo "DOCKER_USERNAME is configured"
             exit 1
           fi
