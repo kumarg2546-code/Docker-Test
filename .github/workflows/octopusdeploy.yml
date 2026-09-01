@@ -44,3 +44,4 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push naresh2546/todo-list-app:latest
+          
