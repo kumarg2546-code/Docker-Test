@@ -39,7 +39,10 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t naresh2546/todo-list-app:latest .
+          docker build \
+            -t naresh2546/todo-list-app:latest \
+            -f ./Todo-App/Dockerfile \
+            ./Todo-App
 
       - name: Push Docker Image
         run: |
