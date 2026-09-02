@@ -14,16 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check Docker credentials
-        env:
-        run echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "{{secretes.DOCKER_USERNAME}}" --password-stdin
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker Image
         run: docker build -t naresh2546/todo-list-app:latest .
 
       - name: Push Docker Image
         run: docker push naresh2546/todo-list-app:latest
-      
-      - name: log out from Docker hub
+
+      - name: Logout from Docker Hub
         run: docker logout
-          
