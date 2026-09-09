@@ -1,36 +1,60 @@
 name: Build and Push Docker Image
 
+# Trigger the workflow on pushes to main, or manually via the Actions tab
 on:
   push:
     branches:
       - main
-      - feature
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: naresh2546/todo-list-app
 
 jobs:
-  docker-build:
+  build-and-push:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check files
-        run: |
-          pwd
-          ls -la
-          find . -name "Dockerfile"
+      - name: Set up QEMU (for multi-arch builds)
+        uses: docker/setup-qemu-action@v3
 
-      - name: Login to Docker Hub
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
-            -u "${{ secrets.DOCKER_USERNAME }}" \
-            --password-stdin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Image
-        run: docker build -t naresh2546/todo-list-app:latest .
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push Docker Image
-        run: docker push naresh2546/todo-list-app:latest
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Logout from Docker Hub
-        run: docker logout
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
